@@ -1,0 +1,9 @@
+target/
+.classpath
+.project
+.settings/
+.factorypath
+*.class
+src/main/resources/application.properties
+.DS_Store
+Thumbs.db
