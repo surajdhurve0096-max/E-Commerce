@@ -4,12 +4,14 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.ecommerce.dto.ProductRequest;
+import com.ecommerce.dto.ProductDTO.ProductRequest;
 import com.ecommerce.model.Product;
 import com.ecommerce.repository.ProductRepository;
 
+
 @Service
 public class ProductService {
+
 
     private final ProductRepository productRepository;
 
@@ -50,4 +52,5 @@ public class ProductService {
     public void deleteProduct(Long id) {
         productRepository.deleteById(id);
     }
+ 
 }
