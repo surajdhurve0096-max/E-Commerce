@@ -28,8 +28,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Order {
 
-	
-	private LocalDateTime createdAt1;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
