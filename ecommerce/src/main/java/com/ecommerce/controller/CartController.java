@@ -1,5 +1,6 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.CartResponse;
 import com.ecommerce.model.Cart;
 import com.ecommerce.service.CartService;
 import com.ecommerce.repository.UserRepository;
@@ -16,33 +17,40 @@ public class CartController {
 
     private final CartService cartService;
     private final UserRepository userRepository;
-    
+
     private Long getUserId(UserDetails userDetails) {
         return userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found")).getId();
     }
 
     @GetMapping
-    public ResponseEntity<Cart> getCart(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(cartService.getCart(getUserId(userDetails)));
+    public ResponseEntity<CartResponse> getCart(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Cart cart = cartService.getCart(getUserId(userDetails));
+        return ResponseEntity.ok(cartService.mapToCartResponse(cart));
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Cart> addToCart(@AuthenticationPrincipal UserDetails userDetails,
-                                           @RequestParam Long productId,
-                                           @RequestParam int quantity) {
-        return ResponseEntity.ok(cartService.addToCart(getUserId(userDetails), productId, quantity));
+    public ResponseEntity<CartResponse> addToCart(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Long productId,
+            @RequestParam int quantity) {
+        Cart cart = cartService.addToCart(getUserId(userDetails), productId, quantity);
+        return ResponseEntity.ok(cartService.mapToCartResponse(cart));
     }
 
     @DeleteMapping("/remove/{productId}")
-    public ResponseEntity<Cart> removeFromCart(@AuthenticationPrincipal UserDetails userDetails,
-                                                @PathVariable Long productId) {
-        return ResponseEntity.ok(cartService.removeFromCart(getUserId(userDetails), productId));
+    public ResponseEntity<CartResponse> removeFromCart(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long productId) {
+        Cart cart = cartService.removeFromCart(getUserId(userDetails), productId);
+        return ResponseEntity.ok(cartService.mapToCartResponse(cart));
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<String> clearCart(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<String> clearCart(
+            @AuthenticationPrincipal UserDetails userDetails) {
         cartService.clearCart(getUserId(userDetails));
-        return ResponseEntity.ok("Cart cleared");
+        return ResponseEntity.ok("Cart cleared successfully");
     }
 }

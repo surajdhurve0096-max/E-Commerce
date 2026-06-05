@@ -1,9 +1,20 @@
 package com.ecommerce.service;
 
-import com.ecommerce.model.*;
-import com.ecommerce.repository.*;
-import org.springframework.stereotype.Service;
 
+
+import com.ecommerce.dto.CartItemResponse;
+import com.ecommerce.dto.CartResponse;
+import com.ecommerce.model.Cart;
+import com.ecommerce.model.CartItem;
+import com.ecommerce.model.Product;
+import com.ecommerce.model.User;
+import com.ecommerce.repository.CartRepository;
+import com.ecommerce.repository.ProductRepository;
+import com.ecommerce.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 @Service
 public class CartService {
 
@@ -61,5 +72,31 @@ public class CartService {
         Cart cart = getCart(userId);
         cart.getItems().clear();
         return cartRepository.save(cart);
+    }
+    
+    public CartResponse mapToCartResponse(Cart cart) {
+        List<CartItemResponse> itemResponses = cart.getItems().stream()
+                .map(item -> CartItemResponse.builder()
+                        .productId(item.getProduct().getId())
+                        .productName(item.getProduct().getName())
+                        .category(item.getProduct().getCategory())
+                        .price(item.getProduct().getPrice())
+                        .quantity(item.getQuantity())
+                        .subtotal(item.getProduct().getPrice()
+                                .multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .build())
+                .collect(Collectors.toList());
+
+        BigDecimal totalPrice = itemResponses.stream()
+                .map(CartItemResponse::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return CartResponse.builder()
+                .cartId(cart.getId())
+                .username(cart.getUser().getUsername())
+                .items(itemResponses)
+                .totalPrice(totalPrice)
+                .totalItems(itemResponses.size())
+                .build();
     }
 }

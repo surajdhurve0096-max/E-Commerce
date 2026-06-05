@@ -1,13 +1,15 @@
 package com.ecommerce.service;
 
 import com.ecommerce.model.*;
+import com.ecommerce.dto.OrderResponse;
+import com.ecommerce.dto.OrderItemResponse;
+import java.util.List;
+import java.util.stream.Collectors;
 import com.ecommerce.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -88,5 +90,28 @@ public class OrderService {
         Order order = getOrderById(orderId);
         order.setStatus(status);
         return orderRepository.save(order);
+    }
+    
+    public OrderResponse mapToOrderResponse(Order order) {
+        List<OrderItemResponse> itemResponses = order.getItems().stream()
+                .map(item -> OrderItemResponse.builder()
+                        .productId(item.getProduct().getId())
+                        .productName(item.getProduct().getName())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .subtotal(item.getPrice()
+                                .multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .build())
+                .collect(Collectors.toList());
+
+        return OrderResponse.builder()
+                .orderId(order.getId())
+                .username(order.getUser().getUsername())
+                .items(itemResponses)
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus().name())
+                .shippingAddress(order.getShippingAddress())
+                .createdAt(order.getCreatedAt1())
+                .build();
     }
 }
