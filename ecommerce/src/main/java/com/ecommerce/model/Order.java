@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 public class Order {
 
 	
-	private LocalDateTime createdAt1;
+	private LocalDateTime createdAt;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -49,10 +49,6 @@ public class Order {
     private OrderStatus status = OrderStatus.PENDING;
 
     private String shippingAddress;
-
-
-	@Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
 
     public enum OrderStatus {
         PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED

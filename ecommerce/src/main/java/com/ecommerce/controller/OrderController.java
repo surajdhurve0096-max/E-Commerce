@@ -1,5 +1,6 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.dto.OrderResponse;
 import com.ecommerce.model.Order;
 import com.ecommerce.service.OrderService;
 import com.ecommerce.repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -19,11 +21,6 @@ public class OrderController {
 
     private final OrderService orderService;
     private final UserRepository userRepository;
-    
-  //  public OrderController (OrderService orderService, UserRepository repository) {
-  //  	this.orderService= OrderService;
-   // 	this.userRepository=UserRepository;
-   // }
 
     private Long getUserId(UserDetails userDetails) {
         return userRepository.findByUsername(userDetails.getUsername())
@@ -31,25 +28,37 @@ public class OrderController {
     }
 
     @PostMapping("/place")
-    public ResponseEntity<Order> placeOrder(@AuthenticationPrincipal UserDetails userDetails,
-                                             @RequestParam String shippingAddress) {
-        return ResponseEntity.ok(orderService.placeOrder(getUserId(userDetails), shippingAddress));
+    public ResponseEntity<OrderResponse> placeOrder(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String shippingAddress) {
+        Order order = orderService.placeOrder(getUserId(userDetails), shippingAddress);
+        return ResponseEntity.ok(orderService.mapToOrderResponse(order));
     }
 
     @GetMapping("/my-orders")
-    public ResponseEntity<List<Order>> getMyOrders(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(orderService.getUserOrders(getUserId(userDetails)));
+    public ResponseEntity<List<OrderResponse>> getMyOrders(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<OrderResponse> orders = orderService
+                .getUserOrders(getUserId(userDetails))
+                .stream()
+                .map(orderService::mapToOrderResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    public ResponseEntity<OrderResponse> getOrder(
+            @PathVariable Long orderId) {
+        Order order = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(orderService.mapToOrderResponse(order));
     }
 
     @PutMapping("/{orderId}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Order> updateStatus(@PathVariable Long orderId,
-                                               @RequestParam Order.OrderStatus status) {
-        return ResponseEntity.ok(orderService.updateOrderStatus(orderId, status));
+    public ResponseEntity<OrderResponse> updateStatus(
+            @PathVariable Long orderId,
+            @RequestParam Order.OrderStatus status) {
+        Order order = orderService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(orderService.mapToOrderResponse(order));
     }
 }
